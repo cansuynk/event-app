@@ -20,43 +20,28 @@ function write_email(options, content, callback) {
 }
 
 //Send email using gmail-send package
-exports.send_invitation = function(req, response) {
-    if (req.session.address) {
-        //Extract necessary information from request body
-        const body = req.body;
-        const subject = body["subject"];
-        const to = body["to"];
-        const content = body["content"]
-        write_email({
-            user: "event.app.invitation.system@gmail.com",
-            pass: "eventapp",
-            to:   to,
-            subject: subject
-        }, content, (err, res) => {
-            if (err) {
-                //Fails if user supplied wrong password on sign in
-                response.send({
-                    code: UNEXPECTED,
-                    detail: err,
-                    data: null
-                })
-            } else {
-                //Success response
-                response.send({
-                    code: SUCCESS,
-                    detail: "Success",
-                    data: null
-                })
+exports.send_invitation = function(subject, to, content) {
+    write_email({
+        user: "event.app.invitation.system@gmail.com",
+        pass: "eventapp",
+        to:   to,
+        subject: subject
+    }, content, (err, res) => {
+        if (err) {
+            //Fails if user supplied wrong password on sign in
+            response.send({
+                code: UNEXPECTED,
+                detail: err,
+                data: null
+            })
+        } else {
+            //Success response
+            response.send({
+                code: SUCCESS,
+                detail: "Success",
+                data: null
+            })
 
-            }
-        })
-
-    } else {
-        //Session is null so user is not authenticated yet
-        response.send({
-            code: NOT_AUTH,
-            detail: "user not authenticated",
-            data: null
-        })
-    }
+        }
+    })
 }

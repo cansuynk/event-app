@@ -70,6 +70,9 @@ app.get('/api/get_events', get_events)
     {
         "event_id": "1",
         "name": "ali2"
+        "email": "ali2@gmail.com",
+        "phone": "905385685318",
+        "message": "come on!"
     }
 */
 app.post('/api/add_participant', add_participant)
@@ -77,6 +80,9 @@ app.post('/api/add_participant', add_participant)
     {
         "event_id": "1",
         "name": "ali2"
+        "email": "ali2@gmail.com",
+        "phone": "+905385685318",
+        "message": "come on!"
     }
 */
 app.post('/api/remove_participant', remove_participant)

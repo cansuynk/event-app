@@ -1,5 +1,56 @@
 const {pool} = require("./db.js")
+const Gmail = require('gmail-send');
+const Nexmo = require('nexmo');
 const {SUCCESS, NOT_AUTH} = require("./error_codes.js")
+
+function send_sms(to, text) {
+    const nexmo = new Nexmo({
+        apiKey: '49fdffdf',
+        apiSecret: 'UNTiF8vnoZAkV0no',
+    });
+    from = "Event App"
+    nexmo.message.sendSms(from, to, text);
+}
+
+//Local function used by send_email
+function write_email(options, content, callback) {
+    const send = Gmail(options)
+    send({text: content, }, (error, result, fullResult) => {
+        if (error) {
+            callback(error, null);
+        } 
+        else {
+            callback(null, result);
+        }
+    })
+}
+
+//Send email using gmail-send package
+send_email = function(subject, to, content) {
+    write_email({
+        user: "event.app.invitation.system@gmail.com",
+        pass: "eventapp",
+        to:   to,
+        subject: subject
+    }, content, (err, res) => {
+        if (err) {
+            //Fails if user supplied wrong password on sign in
+            response.send({
+                code: UNEXPECTED,
+                detail: err,
+                data: null
+            })
+        } else {
+            //Success response
+            response.send({
+                code: SUCCESS,
+                detail: "Success",
+                data: null
+            })
+
+        }
+    })
+}
 
 exports.create_event = function(req, response) {
     const body = req.body;
@@ -108,6 +159,8 @@ exports.add_participant = function(req, response) {
                 })
             }
             else {
+                send_email("Invitation from " + req.session.username, req.body["email"], req.body["message"])
+                send_sms(req.body["phone"], req.body["message"])
                 response.send({
                     code: SUCCESS,
                     detail: "Success",
@@ -139,6 +192,8 @@ exports.remove_participant = function(req, response) {
                 })
             } else {
                 //Success response
+                send_email(req.session.username + " removed you from an event", req.body["email"], req.body["message"])
+                send_sms(req.body["phone"], req.body["message"])
                 response.send({
                     code: SUCCESS,
                     detail: "Success",
