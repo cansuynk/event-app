@@ -43,12 +43,6 @@ app.get('/api/auth/fetch_user', fetch_user);
 
 
 
-/*
-// Invitation ROUTES
-app.post('/api/send_email', send_invitation);
-app.post('/api/send_sms', send_sms);
-*/
-
 // EVENT ROUTES
 /*  Example request payload
     {

@@ -41,17 +41,16 @@ class Login extends Component{
             if (!err) {
                     axios({
                         method: 'post',
-                        url: config.LOGIN_URL,
-                        headers: {'Content-Type': 'application/json'},
+                        url: "/auth/login",
                         data: {
                             username: this.state.username,
                             password: this.state.password
                         }
                     }).then((res) => {
-                        if (res.data.success) {
-                            localStorage.setItem("userId", res.data.id);
-                            localStorage.setItem("token", res.data.data.token);
-                            this.props.history.push("/profile");
+                        if (res.data.code === 200) {
+                            window.location.reload();
+                        } else {
+                            alert(res.data.detail);
                         }
                     }).catch((err) =>  {
                         alert('Your username or password is incorrect!');
@@ -133,7 +132,7 @@ class Login extends Component{
                             {this.state.password_err ? <p className="text-error">Type in correct password!</p>: ""}
 
                             <div className="FormField">
-                                <button className="FormField__Button nr-20">Login </button>
+                                <button onClick={this.handleSubmit} className="FormField__Button nr-20">Login </button>
                             </div>
                         </form>
                     </div>

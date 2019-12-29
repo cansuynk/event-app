@@ -11,8 +11,8 @@ class SignUp extends Component {
             username: '',
             email: '',
             password: '',
-            secretQuestion: '',
-            secretAnswer: ''
+            secretQuestion: '', // Phone Number
+            secretAnswer: '' //
         };
 
         this.handleChange = this.handleChange.bind(this);
@@ -35,9 +35,8 @@ class SignUp extends Component {
             email_err: this.state.email.length === 0 ? true : false,
             password_err: this.state.password === "" ? true : false,
             secretq_err: this.state.secretQuestion=== "" ? true : false,
-            secreta_err: this.state.secretAnswer === "" ? true : false,
         }, () => {
-            callback(this.state.username_err === true || this.state.email_err === true || this.state.password_err === true || this.state.secretq_err === true || this.state.secreta_err === true)
+            callback(this.state.username_err === true || this.state.email_err === true || this.state.password_err === true)
         })
     }
 
@@ -45,23 +44,23 @@ class SignUp extends Component {
         e.preventDefault();
         this.check_errors((err) => {
             if (!err) {
+                console.log("asdklsa")
                 axios({
                     method: 'post',
-                    url: config.SIGNUP_URL,
-                    headers: {'Content-Type': 'application/json'},
+                    url: '/auth/sign_in',
                     data: {
                         username: this.state.username,
                         email: this.state.email,
                         password: this.state.password,
-                        secretQuestion: this.state.secretQuestion,
-                        secretAnswer: this.state.secretAnswer,
+                        phone_number: this.state.secretQuestion,
                     }
                 }).then(res => {
-                    if (res.data.success) {
-                        this.props.history.push("/login");
+                    console.log(res)
+                    if (res.data.code === 200) {
+                        window.location.reload();
                     }
                 }).catch( err => {
-                    alert("Your username or email is in use!")
+                    alert(err)
                 })
             }
         })
@@ -181,7 +180,7 @@ class SignUp extends Component {
                                 {this.state.password_err ? <p className="text-error">You must enter a password!</p> : ""}
                                 <div>
                                     <div className="FormField">
-                                        <button className="FormField__Button nr-20">Sign Up</button>
+                                        <button onClick={this.handleSubmit} className="FormField__Button nr-20">Sign Up</button>
                                     </div>
                                 </div>
                             </form>

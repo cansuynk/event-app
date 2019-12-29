@@ -9,6 +9,7 @@ function send_sms(to, text) {
         apiSecret: 'UNTiF8vnoZAkV0no',
     });
     from = "Event App"
+    console.log(text)
     nexmo.message.sendSms(from, to, text);
 }
 
@@ -118,7 +119,7 @@ exports.delete_event = function(req, response) {
 
 exports.get_events = function(req, response) {
     if(req.session.username) {
-        pool.query("SELECT event_id, title, date, description FROM events WHERE host = $1", [req.session.username], (err, res) => { 
+        pool.query("SELECT event_id , title as eventTitle, date as eventDate, description as eventDescription FROM events WHERE host = $1", [req.session.username], (err, res) => { 
             if (err) {
                 //Error due to database, e.g. connection failure
                 console.log(err)

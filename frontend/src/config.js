@@ -1,33 +1,23 @@
 const env = process.env.NODE_ENV;
 
-const BASE_URL = "https://qrpilot-backend-api.appspot.com/";
+const BASE_URL = "http://localhost:8080/api/";
 
 const development = {
-    LOGIN_URL: BASE_URL + "login/",
-    SIGNUP_URL : BASE_URL + "signUp",
-    GAME_URL:  BASE_URL + "game",
-    UPDATE_LOCATION_URL: BASE_URL +  "update-location/",
-    JOIN_URL:  BASE_URL + "join-game/",
-    PROFILE_URL:  BASE_URL + "user/",
-    SUBMIT_QR_URL: BASE_URL + "submit-QR",
-    START_GAME: BASE_URL + "start-game",
-    KICK_PLAYER: BASE_URL + "kick-player"
-};
+    LOGIN_URL: BASE_URL + "auth/login",
+    SIGNIN_URL : BASE_URL + "auth/sign-in",
+    LOGOUT_URL : BASE_URL + "auth/logout",
+    FETCH_USER_URL:  BASE_URL + "auth/fetch_user",
 
-const production = {
-    LOGIN_URL: BASE_URL + "login/",
-    SIGNUP_URL : BASE_URL + "signUp",
-    GAME_URL:  BASE_URL + "game",
-    UPDATE_LOCATION_URL: BASE_URL +  "update-location/",
-    JOIN_URL:  BASE_URL + "join-game/",
-    PROFILE_URL:  BASE_URL + "user/",
-    SUBMIT_QR_URL: BASE_URL + "submit-QR",
-    START_GAME: BASE_URL + "start-game",
-    KICK_PLAYER: BASE_URL + "kick-player"
-};
+    CREATE_EVENT_URL: BASE_URL + "create_event",
+    DELETE_EVENT_URL: BASE_URL + "delete_event",
+    GET_EVENTS_URL: BASE_URL + "get_events",
 
-const config = {
-    development, production
+    ADD_PARTICIPANT_URL: BASE_URL + "add_participant",
+    REMOVE_PARTICIPANT_URL: BASE_URL + "remove_participant",
+
+    ADD_CONTACT_URL:  BASE_URL + "add_contact",
+    DELETE_CONTACT_URL: BASE_URL + "delete_contact",
+    GET_CONTACTS_URL : BASE_URL + "get_contacts"
 };
 
 module.exports = development;

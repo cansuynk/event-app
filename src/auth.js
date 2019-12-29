@@ -18,7 +18,7 @@ exports.login = function(req, response) {
     const username = body["username"];
     const hash = computeSHA256(password);
     //Execute a select querry
-    pool.query("SELECT username FROM users WHERE hash = $1 AND username = $2", [hash, username], (err, res) => {
+    pool.query("SELECT username, phone_number, email FROM users WHERE hash = $1 AND username = $2", [hash, username], (err, res) => {
         if (err) {
             //Error due to database, e.g. connection failure
             console.log(err)
@@ -36,9 +36,12 @@ exports.login = function(req, response) {
                     data: null
                 })
             } else {
+                console.log(res.rows)
                 //Set cookie
                 sess=req.session;
-                sess.username = username
+                sess.username = res.rows[0]["username"]
+                sess.phone_number = res.rows[0]["phone_number"]
+                sess.email = res.rows[0]["email"]
                 //Success Response
                 response.send({
                     code: SUCCESS,
@@ -73,7 +76,9 @@ exports.sign_in = function(req, response) {
         } else {
             //Set cookie
             sess = req.session;
-            sess.username = username;
+            sess.username = username
+            sess.phone_number = phone_number
+            sess.email = email
             //Success Response
             response.send({
                 code: SUCCESS,
@@ -95,6 +100,8 @@ exports.fetch_user = function(req, response) {
             detail: "Success",
             data: {
                 username: sess.username,
+                phone_number: sess.phone_number,
+                email: sess.email
             }
         })
     } else {

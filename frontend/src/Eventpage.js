@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import axios from "axios"
 import './Eventpage.css';
 import {
     Calendar,
@@ -16,21 +17,6 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 const localizer = momentLocalizer(moment);
 
 
-//Data for contact list
-const data = [
-    {name:"Thor Odinson", email:"thor.odison@gmail.com", phone:"1234567891"},
-    {name:"Tony Stark", email:"tony.s@gmail.com", phone:"7894561230"},
-    {name:"Steve Rogers", email:"steveRogers@gmail.com", phone:"7418529630"},
-    {name:"Maria Bunner", email:"mariamaria@gmail.com", phone:"3692581470"},
-    {name:"Alice Wolf", email:"misswolf@gmail.com", phone:"0321654987"},
-    {name:"David Mckellin", email:"MckellinDavid@gmail.com", phone:"0123654789"},
-   
-];
-//Bu veriyi eventleri listelemek icin kullandim, kendine gore degistirebilirsin
-let eventList = [
-    {eventTitle:"Meeting", eventDate: "12-12-2019", people:["Thor Odinson","Steve Rogers"], emails: "thor.odison@gmail.com,tony.s@gmail.com", phones: "1234567891,7418529630", eventDescription:"Description"},
-    {eventTitle:"Presentation", eventDate: "12-12-2019", people:["Alice Wolf","Steve Rogers"], emails: "thor.odison@gmail.com,tony.s@gmail.com", phones: "1234567891,7418529630", eventDescription:"Description"}
-];
 
 //react-big-calendar diye bir takvim modulu kullandim, event verisini asagidaki sekilde aliyordu denemek icin yazdim
 let list =[
@@ -58,13 +44,6 @@ class Eventpage extends React.Component {
     constructor() {
         super();
         this.state = {
-         
-           name: "Bruce Banner",
-           subtitle: "THE HULK",
-           email: "bruce.banner@hulk.com",
-           phone: "05123456789",
-           skype: "bruce.banner",
-           location: "Dayton, Ohio",
            contacts:[],
            addContactDiv:"",
            newContactName:"",
@@ -75,13 +54,12 @@ class Eventpage extends React.Component {
            eventTitle:"",
            eventDate:"",
            eventDescription:"",
+           invitations: [],
            profileContent:"profile",
            events:[]
  
         }
    
-        this.state.contacts = data;
-        this.state.events = eventList;
         this.deleteContact = this.deleteContact.bind(this);
         this.change = this.change.bind(this);
         this.addContact = this.addContact.bind(this);
@@ -96,10 +74,40 @@ class Eventpage extends React.Component {
         this.logout = this.logout.bind(this);
     }  
 
+    handleSelect = (e) => {
+      let array = this.state.invitations
+      array.indexOf(e.target.value) === -1 ? array.push(e.target.value) : console.log("This item already exists");
+      this.setState({
+        invitations: array
+      })
+
+    }
     
    componentDidMount() {
-    //empty
-    
+      axios({
+          method: 'get',
+          url: '/get_events',
+      }).then(res => {
+          if (res.data.code === 200) {
+              this.setState({
+                events: res.data.data
+              })
+          }
+      }).catch( err => {
+          alert(err)
+      })
+      axios({
+        method: 'get',
+        url: '/get_contacts',
+      }).then(res => {
+          if (res.data.code === 200) {
+              this.setState({
+                contacts: res.data.data
+              })
+          }
+      }).catch( err => {
+          alert(err)
+      })
    }
    addContact(){
        //add contact butonuna basinca yeni kisi eklemek icin pop-up tarzi bir sey cikariyor.
@@ -181,11 +189,26 @@ class Eventpage extends React.Component {
             email:this.state.newContactEmail,
             phone:this.state.newContactPhone
         }
+        axios({
+          method: 'post',
+          url: '/add_contact',
+          data: newContact
+          }).then(res => {
+              if (res.data.code !== 200) {
+                alert(res.data.detail)
+              }  else {
+                window.location.reload();
+              }
+          }).catch( err => {
+              alert(err)
+          })
 
+        /*
         data.push(newContact);
         this.setState({
             contacts:data
         })
+        */
         this.closeContactDiv();
    }
    closeContactDiv(){
@@ -223,22 +246,42 @@ class Eventpage extends React.Component {
 
    deleteContact(element){
        //Contact taki carpi butonuna basinca, silinmesi icin yazilan bir fonksiyon
-       var newContactData = this.state.contacts;
-        var index = this.state.contacts.findIndex(obj => obj.name===element.name);
-        newContactData.splice(index,1);
-        this.setState({
-            contacts: newContactData
+       var name_tobe_deleted = element.name
+       axios({
+        method: 'post',
+        url: "/delete_contact",
+        data: {
+            name: name_tobe_deleted
+        }
+        }).then((res) => {
+            if (res.data.code === 200) {
+                window.location.reload();
+            } else {
+                alert(res.data.detail);
+            }
+        }).catch((err) =>  {
+            alert(err);
         })
    }
    deleteEvent(element){
        //eventlerin silinmesi icin yazildi
-    var eventarray = this.state.events 
-    var index = eventarray.findIndex(obj => obj.eventTitle===element.eventTitle);
-    eventarray.splice(index,1);
+    var id = element.event_id
 
-    this.setState({
-        events:eventarray
-    })
+    axios({
+      method: 'post',
+      url: "/delete_event",
+      data: {
+         event_id : id
+      }
+      }).then((res) => {
+          if (res.data.code === 200) {
+              window.location.reload();
+          } else {
+              alert(res.data.detail);
+          }
+      }).catch((err) =>  {
+          alert(err);
+      })
    }
     //event olustururken email ve tel secimi icin contact listesinden istenilen email ve teli ayri ayri secilebilir yaptım
     //email veya tel secilince event yollama kismindaki bölüme emailler ve teller tek tek geliyor.
@@ -279,37 +322,57 @@ class Eventpage extends React.Component {
          phones:phonearray
     })
     }
-   handleSendSubmit(){
-       //event yollama kismindaki forumda sent butonuna basinca bu fonksiyona giriyor.
-        //yeni bir item olusturuyor.
-        //bu kisim senin event datasini nasil aldigina bagli olarak degistirilebilir.
-       //event yollama islemi burada yapiliyor
+   handleSendSubmit(e){
+     e.preventDefault()
+    let newEvent ={
+        title:this.state.eventTitle,
+        date: this.state.eventDate,
+        description:this.state.eventDescription
+    }
 
-       let eventarray = this.state.events
+    axios({
+      method: 'post',
+      url: "/create_event",
+      data: newEvent
+      }).then( async (res) => {
+          if (res.data.code === 200) {
+              for(let i = 0 ; i < this.state.invitations.length; i++) {
+                  let picked = this.state.contacts.find(o => o.name === this.state.invitations[i]);
+                  picked.event_id = res.data.data
+                  picked.message = "Join my event on " + this.state.eventDate + " \n\n " +  this.state.eventDescription
 
-        let newEvent ={
-            eventTitle:this.state.eventTitle,
-            eventDate: this.state.eventDate,
-            emails: this.state.emails,
-            phones: this.state.phones,
-            eventDescription:this.state.eventDescription
-        }
-        eventarray.push(newEvent)
-        eventList.push(newEvent)
-       
-       this.setState({
-        eventDescription:"",
-        eventDate:"",
-        eventTitle:"",
-        emails:[],
-        phones:[],
-        events: eventList
-    });
-    
+                  res = await axios({
+                    method: 'post',
+                    url: "/add_participant",
+                    data: picked
+                    })
+
+                  if (res.data.code !==  200) {
+                    alert(res.data.detail)
+                  }
+            }
+           
+          alert("SuccessFully Created!")
+            window.location.reload();
+          } else {
+              alert(res.data.detail);
+          }
+      }).catch((err) =>  {
+          alert(err);
+      })
    }
-   logout(){
-       //logine donus
-    this.props.history.push("/login");
+   logout(e){
+     e.preventDefault()
+      axios({
+        method: 'get',
+        url: "/auth/logout"
+      }).then((res) => {
+          if (res.data.code === 200) {
+              window.location.reload();
+          }
+      }).catch((err) =>  {
+          alert(err);
+      })
    }
     
     render() {
@@ -331,8 +394,7 @@ class Eventpage extends React.Component {
                 <div className="panel">
                   <div className="panel-header text-center" >
                     <figure className="avatar avatar-lg"><img src="https://picturepan2.github.io/spectre/img/avatar-1.png" alt="Avatar"/></figure>
-                    <div className="panel-title h5 mt-10">{this.state.name}</div>
-                    <div className="panel-subtitle">{this.state.subtitle}</div>
+                    <div className="panel-title h5 mt-10">{this.props.username}</div>
                   </div>
                   {this.state.profileContent==="profile"?<div><nav className="panel-nav">
                     <ul className="tab tab-block">
@@ -345,107 +407,19 @@ class Eventpage extends React.Component {
                     <div className="tile tile-centered">
                       <div className="tile-content">
                         <div className="tile-title text-bold">E-mail</div>
-                        <div className="tile-subtitle">{this.state.email}</div>
+                        <div className="tile-subtitle">{this.props.email}</div>
                       </div>
-                      <div className="tile-action">
-                      <div className="popover popover-left">
-                        <button className="btn btn-link btn-action btn-lg"><i className="icon icon-edit"></i></button>
-                        <div className="popover-container">
-                            <div className="card">
-                            <div className="card-body">
-                            <form className="form-horizontal" action="#forms">
-                            <div className="form-group">
-                                <label className="form-label">Edit Email</label>
-                                <input className="form-input" ref="email" type="email" name="email" placeholder="Email" pattern="[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$"/>
-                            </div>
-                            </form>
-                            </div>
-                            <div className="card-footer">
-                                <button className="btn btn-primary" onClick={this.change}>Save</button>
-                            </div>
-                            </div>
-                        </div>
-                    </div>
-                        </div>
+                      
                     </div>
                     <div className="tile tile-centered">
                       <div className="tile-content">
                         <div className="tile-title text-bold">Phone Number</div>
-                        <div className="tile-subtitle">{this.state.phone}</div>
+                        <div className="tile-subtitle">{this.props.phone}</div>
                       </div>
-                      <div className="tile-action">
-                      <div className="popover popover-left">
-                        <button className="btn btn-link btn-action btn-lg"><i className="icon icon-edit"></i></button>
-                        <div className="popover-container">
-                            <div className="card">
-                            <div className="card-body">
-                            <form className="form-horizontal" action="#forms">
-                            <div className="form-group">
-                                <label className="form-label">Edit Phone</label>
-                                <input className="form-input" ref="phone" name="phone" type="tel" placeholder="Tel"/>
-                            </div>
-                            </form>
-                            </div>
-                            <div className="card-footer">
-                                <button className="btn btn-primary" onClick={this.change}>Save</button>
-                            </div>
-                            </div>
-                        </div>
+
                     </div>
-                      </div>
-                    </div>
-                    <div className="tile tile-centered">
-                      <div className="tile-content">
-                        <div className="tile-title text-bold">Skype</div>
-                        <div className="tile-subtitle">{this.state.skype}</div>
-                      </div>
-                      <div className="tile-action">
-                      <div className="popover popover-left">
-                        <button className="btn btn-link btn-action btn-lg"><i className="icon icon-edit"></i></button>
-                        <div className="popover-container">
-                            <div className="card">
-                            <div className="card-body">
-                            <form className="form-horizontal" action="#forms">
-                            <div className="form-group">
-                                <label className="form-label">Edit Skype</label>
-                                <input className="form-input" ref="skype" name="skype" type="text" placeholder="Skype"/>
-                            </div>
-                            </form>
-                            </div>
-                            <div className="card-footer">
-                                <button className="btn btn-primary" onClick={this.change}>Save</button>
-                            </div>
-                            </div>
-                        </div>
-                    </div>
-                      </div>
-                    </div>
-                    <div className="tile tile-centered">
-                      <div className="tile-content">
-                        <div className="tile-title text-bold">Location</div>
-                        <div className="tile-subtitle">{this.state.location}</div>
-                      </div>
-                      <div className="tile-action">
-                      <div className="popover popover-left">
-                        <button className="btn btn-link btn-action btn-lg"><i className="icon icon-edit"></i></button>
-                        <div className="popover-container">
-                            <div className="card">
-                            <div className="card-body">
-                            <form className="form-horizontal" action="#forms">
-                            <div className="form-group">
-                                <label className="form-label" >Edit Location</label>
-                                <input className="form-input" ref="location" name="location" type="text" placeholder="Location"/>
-                            </div>
-                            </form>
-                            </div>
-                            <div className="card-footer">
-                                <button className="btn btn-primary" onClick={this.change}>Save</button>
-                            </div>
-                            </div>
-                        </div>
-                    </div>
-                      </div>
-                    </div>
+                    
+                  
                   </div>
                   </div>:this.state.profileContent==="list"?<div><nav className="panel-nav">
                     <ul className="tab tab-block">
@@ -461,19 +435,15 @@ class Eventpage extends React.Component {
                          <details className="accordion" >
                         <summary className="accordion-header" style={{ border:"1px solid blue"}}>
                           <i className="icon icon-arrow-right mr-1"></i>
-                          {item.eventTitle}
+                          {item.eventtitle}
                           <button style={{float:"right" ,border:"none", background:"none"}} className="btn btn-sm tooltip tooltip-left" data-tooltip="Delete Event" onClick={() => this.deleteEvent(item)}>x</button>
                         </summary>
                         <div className="accordion-body" style={{overflow:"scroll"}}>
                         
                             
-                            <strong>Date:</strong> {item.eventDate}<br></br>
-                            <strong>Description: </strong> {item.eventDescription}<br></br>
-                            <strong> People: </strong> {
-                                item.people.map((item2,key)=> <div className="chip" style={{background:"#5755d9", color:"white"}}>
-                                {item2}, 
-                                </div>)
-                            }
+                            <strong>Date:</strong> {item.eventdate}<br></br>
+                            <strong>Description: </strong> {item.eventdescription}<br></br>
+                           
                      
                         </div>
                       </details>
@@ -588,32 +558,22 @@ class Eventpage extends React.Component {
                 </div>
                 <div className="form-group">
                 <div className="col-3 col-sm-12">
-                    <label className="form-label" ><h5>Emails: </h5></label>
+                    <label className="form-label" ><h5>Invite: </h5></label>
+                    
                 </div>
-                <div className="col-9 col-sm-12" style={{background:"white" ,border: "1px solid lightgray"}}><div>
-                {this.state.emails.map((item,key)=>
-                    <div className="chip" style={{background:"#5755d9", color:"white"}}>
-                    {item.email}
-                    <a href="#" className="btn btn-clear" aria-label="Close" role="button" onClick={() => this.deleteEmail(item)}></a>
-                    </div>
-                )}
-                </div>
-                </div>
+                <div class="form-group">
+                    <select onChange={this.handleSelect}  name="invitations" value={this.state.invitations} multiple class="form-select">
+                      {
+                       this.state.contacts.map((item, key) => {
+                         return <option key={key}> {item.name}  </option>
+                        })
+                      }
+                    </select>
+                  </div>
+
                 </div>
 
-                <div className="form-group">
-                <div className="col-3 col-sm-12">
-                    <label className="form-label"><h5>Phone Numbers: </h5></label>
-                </div>
-                <div className="col-9 col-sm-12" style={{background:"white" ,border: "1px solid lightgray"}}>
-                {this.state.phones.map((item,key)=>
-                    <div className="chip" style={{background:"#5755d9", color:"white"}}>
-                    {item.phone}
-                    <a href="#" className="btn btn-clear" aria-label="Close" role="button"onClick={() => this.deletePhone(item)}></a>
-                    </div>
-                )}
-                </div>
-                </div> 
+                
                 <div className="form-group">
                 <div className="col-3 col-sm-12">
                     <label className="form-label"><h5>Event Date: </h5></label>
