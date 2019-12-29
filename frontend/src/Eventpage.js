@@ -19,18 +19,6 @@ const localizer = momentLocalizer(moment);
 
 
 //react-big-calendar diye bir takvim modulu kullandim, event verisini asagidaki sekilde aliyordu denemek icin yazdim
-let list =[
-    {
-      'title': 'All Day Event very long title',
-      'start': new Date(2019, 11, 12),
-      'end': new Date(2019, 11, 12),
-    },
-    {
-      'title': 'Long Event',
-      'start': new Date(2019, 11, 15),
-      'end': new Date(2019, 11, 15),
-    },
-]  
 
 //Random avatars for people in the contact list
 //It is necessary, dont delete
@@ -49,6 +37,7 @@ class Eventpage extends React.Component {
            newContactName:"",
            newContactEmail:"",
            newContactPhone:"",
+           calendar_data: [],
            emails:[],
            phones:[],
            eventTitle:"",
@@ -92,6 +81,20 @@ class Eventpage extends React.Component {
               this.setState({
                 events: res.data.data
               })
+              let data = []
+              for(let i = 0 ; i <  res.data.data.length; i++ ) {
+                data.push({
+                  'title': res.data.data[i]["eventtitle"] ,
+                  'start': new Date(res.data.data[i]["eventdate"]),
+                  'end': new Date(res.data.data[i]["eventdate"]),
+                })
+                console.log(data)
+                
+              }
+              this.setState({
+                calendar_data: data
+              })
+              
           }
       }).catch( err => {
           alert(err)
@@ -143,7 +146,7 @@ class Eventpage extends React.Component {
                       <label className="form-label" for="input-example-11">Tel:</label>
                     </div>
                     <div className="col-9">
-                      <input className="form-input"  name="newContactPhone" id="input-example-11" type="tel" placeholder="Tel" onChange={this.handleChange}/>
+                      <input className="form-input"  pattern="\d*"   name="newContactPhone" id="input-example-11" type="tel" placeholder="Ex. 905385685318" onChange={this.handleChange}/>
                     </div>
                   </div>
                   <div className="form-group">
@@ -465,7 +468,7 @@ class Eventpage extends React.Component {
                   <Calendar
                     style={{ height: 500 }}
                     localizer={localizer}
-                    events={list}
+                    events={this.state.calendar_data}
                     step={60}
                     views={["month"]}
                     onView={() => {}}

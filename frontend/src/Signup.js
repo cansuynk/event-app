@@ -121,8 +121,8 @@ class SignUp extends Component {
                                 <div className="FormField">
                                     <label className="FormField__Label" htmlFor="secretq">Phone Number </label>
                                     <input type="Tel" id="secretq" className="FormField__Input"
-                                        placeholder="Enter your phone number"
-                                        name="secretQuestion" value={this.state.secretQuestion}
+                                        placeholder="Ex. 905385685318"
+                                        name="secretQuestion"  pattern="\d*"  value={this.state.secretQuestion}
                                         onChange={this.handleChange}/>
                                 </div>
                                 {this.state.secretq_err ?
