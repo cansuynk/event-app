@@ -6,7 +6,7 @@ exports.pool = new Pool({
     user: 'postgres',
     host: 'localhost',
     database: 'event_app',
-    password: '58132134',
+    password: '********',
     port: 5432,
 })
   
